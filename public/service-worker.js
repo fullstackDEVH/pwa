@@ -11,3 +11,13 @@ self.addEventListener("push", (event) => {
   };
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
+
+self.addEventListener("notificationclick", (event) => {
+  const notificationData = event.notification.data;
+
+  if (notificationData && notificationData.url) {
+    self.clients.openWindow(notificationData.url);
+  }
+
+  event.notification.close();
+});

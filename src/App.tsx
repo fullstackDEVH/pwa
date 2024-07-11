@@ -19,18 +19,26 @@ const App: React.FC = () => {
   }, []);
 
   const handlePushNotificationClick = () => {
-    if ("serviceWorker" in navigator && Notification.permission === "granted") {
-      console.log("send");
-
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.showNotification("Thông báo từ ứng dụng", {
-          body: "Chào mừng bạn đến với ứng dụng của chúng tôi!",
-          icon: "logo192.png",
-          badge: "logo192.png",
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then((registration) => {
+          return registration.showNotification("Thông báo từ ứng dụng", {
+            body: "Chào mừng bạn đến với ứng dụng của chúng tôi!",
+            icon: "logo192.png",
+            badge: "logo192.png",
+          });
+        })
+        .catch((error) => {
+          console.error("Error while sending notification:", error);
         });
-      });
+    } else {
+      console.error("Service Worker not supported");
     }
   };
+
+  useEffect(() => {
+    // setInterval(handlePushNotificationClick, 5000);
+  }, []);
 
   return (
     <div className="App">
