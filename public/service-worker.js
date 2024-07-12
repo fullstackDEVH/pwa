@@ -1,23 +1,69 @@
 // public/service-worker.js
-self.addEventListener("push", (event) => {
-  const data = event.data.json();
-  console.log("service worker event : ", event);
-  console.log("service worker data : ", data);
 
-  const options = {
-    body: data.body,
-    icon: "icon.png",
-    badge: "badge.png",
-  };
-  event.waitUntil(self.registration.showNotification(data.title, options));
+// const cacheAssest = [
+//   "index.html"
+// ]
+
+self.addEventListener("install", (event) => {
+  // Perform install steps, cache here
+  console.log("Service Worker installing.", event);
+});
+
+self.addEventListener("message", (event) => {
+  console.log("skip waiting : ", event);
+  if (event.data && event.data.action === "skipWaiting") {
+    self.skipWaiting();
+  }
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("Service Worker activating.");
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          // If the cache name doesn't match your current cache name, delete it
+          if (cacheName !== "your-current-cache-name") {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  return self.clients.claim();
 });
 
 self.addEventListener("notificationclick", (event) => {
+  event.notification.close(); // Close the notification
+
   const notificationData = event.notification.data;
+  event.waitUntil(
+    (async () => {
+      console.log(notificationData);
+      if (notificationData && notificationData.url) {
+        // Get all the Window clients
+        const allClients = await self.clients.matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        });
+        console.log("allClients : ", allClients);
 
-  if (notificationData && notificationData.url) {
-    self.clients.openWindow(notificationData.url);
-  }
+        // Check if there's already a window/tab open with your URL
+        const matchingClient = allClients.find((client) => {
+          return client.url === notificationData.url;
+        });
 
-  event.notification.close();
+        if (matchingClient) {
+          // Focus the existing window/tab
+          return matchingClient.focus();
+        } else {
+          // Open a new window/tab with the URL
+          return self.clients.openWindow(notificationData.url);
+        }
+      }
+    })()
+  );
+
+  // Log to the console for debugging purposes
+  console.log("Notification clicked:", notificationData);
 });

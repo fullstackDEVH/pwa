@@ -26,6 +26,9 @@ const App: React.FC = () => {
             body: "Chào mừng bạn đến với ứng dụng của chúng tôi!",
             icon: "logo192.png",
             badge: "logo192.png",
+            data: {
+              url: import.meta.env.BASE_URL,
+            },
           });
         })
         .catch((error) => {

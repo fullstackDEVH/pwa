@@ -17,7 +17,7 @@ export function register(config?: Config) {
     window.addEventListener("load", () => {
       const swUrl = `${import.meta.env.BASE_URL}service-worker.js`;
       console.log("swUrl : ", swUrl);
-      
+
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
       } else {
@@ -39,12 +39,14 @@ function registerValidSW(swUrl: string, config?: Config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === "installed") {
             if (navigator.serviceWorker.controller) {
+              alert("New update available");
               console.log(
                 "New content is available and will be used when all tabs for this page are closed."
               );
               if (config && config.onUpdate) {
                 config.onUpdate(registration);
               }
+              notifyUserAboutUpdate(installingWorker);
             } else {
               console.log("Content is cached for offline use.");
               if (config && config.onSuccess) {
@@ -91,5 +93,15 @@ export function unregister() {
     navigator.serviceWorker.ready.then((registration) => {
       registration.unregister();
     });
+  }
+}
+
+function notifyUserAboutUpdate(installingWorker: ServiceWorker) {
+  console.log("installingWorker : ", installingWorker);
+
+  if (
+    confirm("A new version of the app is available. Do you want to update?")
+  ) {
+    installingWorker.postMessage({ action: "skipWaiting" });
   }
 }
