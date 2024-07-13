@@ -12,11 +12,59 @@ type Config = {
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
 };
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+function registerPushManager(registration: ServiceWorkerRegistration) {
+  console.log("registration : ", registration);
+  console.log(registration.pushManager.getSubscription());
+
+  registration.pushManager
+    .getSubscription()
+    .then((subscription) => {
+      console.log(subscription);
+
+      if (subscription === null) {
+        return registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(
+            "BMHXipBHt-A4qkUW4CJAhY9Tz5u2aETHQrjdC2abao18-EfiLCFaFTf4CPz2TBdkmgDR7xxOHr2WyILu_Hf5TOI"
+          ),
+        });
+      } else {
+        return subscription;
+      }
+    })
+    .then((subscription) => {
+      console.log("Subscribed:", subscription);
+      // Gửi subscription về server để lưu
+      fetch("https://node-pwa-peach.vercel.app/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subscription),
+      });
+    })
+    .catch((error) => {
+      console.error("PushManager subscription failed:", error);
+    });
+}
+
 export function register(config?: Config) {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       const swUrl = `${import.meta.env.BASE_URL}service-worker.js`;
-      console.log("swUrl : ", swUrl);
 
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
@@ -56,6 +104,7 @@ function registerValidSW(swUrl: string, config?: Config) {
           }
         };
       };
+      registerPushManager(registration);
     })
     .catch((error) => {
       console.error("Error during service worker registration:", error);

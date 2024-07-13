@@ -18,25 +18,20 @@ const App: React.FC = () => {
     requestNotificationPermission();
   }, []);
 
-  const handlePushNotificationClick = () => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.ready
-        .then((registration) => {
-          return registration.showNotification("Thông báo từ ứng dụng", {
-            body: "Chào mừng bạn đến với ứng dụng của chúng tôi!",
-            icon: "logo192.png",
-            badge: "logo192.png",
-            data: {
-              url: import.meta.env.BASE_URL,
-            },
-          });
-        })
-        .catch((error) => {
-          console.error("Error while sending notification:", error);
-        });
-    } else {
-      console.error("Service Worker not supported");
-    }
+  const handlePushNotificationClick = async () => {
+ 
+
+    const res = await fetch("https://node-pwa-peach.vercel.app/sendNotification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: "Hello!",
+        body: "This is a test notification.",
+      }),
+    });
+    console.log(await res.json());
   };
 
   useEffect(() => {

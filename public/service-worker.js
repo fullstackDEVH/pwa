@@ -4,6 +4,19 @@
 //   "index.html"
 // ]
 
+self.addEventListener("push", function (event) {
+  console.log("event : ", event);
+
+  const options = {
+    body: event.data ? event.data.text() : "No payload",
+    icon: "icon.png", // Thay thế bằng đường dẫn tới icon của bạn
+    badge: "badge.png", // Thay thế bằng đường dẫn tới badge của bạn
+  };
+  event.waitUntil(
+    self.registration.showNotification("Push Notification", options)
+  );
+});
+
 self.addEventListener("install", (event) => {
   // Perform install steps, cache here
   console.log("Service Worker installing.", event);
@@ -20,6 +33,8 @@ self.addEventListener("activate", (event) => {
   console.log("Service Worker activating.");
   event.waitUntil(
     caches.keys().then((cacheNames) => {
+      console.log(cacheNames);
+
       return Promise.all(
         cacheNames.map((cacheName) => {
           // If the cache name doesn't match your current cache name, delete it
